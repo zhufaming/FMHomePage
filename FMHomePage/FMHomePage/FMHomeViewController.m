@@ -15,9 +15,9 @@
 
 @property (strong, nonatomic) IBOutlet UITableView *mainTableView;
 
-@property (strong, nonatomic) IBOutlet UIView *topView;
-
 @property (strong, nonatomic)  UIImageView *topImgV;
+
+@property (nonatomic, assign) CGFloat alphaMemory;
 
 @end
 
@@ -28,21 +28,43 @@ static NSString *const Identfier=@"TableCellID";
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    UIView *headerView=[[UIView alloc] initWithFrame:CGRectMake(0, 0, SCR_WIDTH, 200)];
+    UIView *headerView=[[UIView alloc] initWithFrame:CGRectMake(0, 0, SCR_WIDTH, 300)];
     headerView.backgroundColor=[UIColor clearColor];
     self.mainTableView.tableHeaderView=headerView;
     
-    self.topImgV=[[UIImageView alloc] initWithFrame:CGRectMake(0, 0, SCR_WIDTH, 200)];
+    self.topImgV=[[UIImageView alloc] initWithFrame:CGRectMake(0, 0, SCR_WIDTH, 300)];
     self.topImgV.image=[UIImage imageNamed:@"meinv"];
-    [self.topView addSubview:self.topImgV];
+    [self.view insertSubview:self.topImgV belowSubview:self.mainTableView];
     self.topImgV.contentMode=UIViewContentModeScaleAspectFill;
     self.topImgV.clipsToBounds=YES;
     
-    [self.navigationController.navigationBar setBarTintColor:[UIColor lightGrayColor]];
+    [self.navigationController.navigationBar setBarTintColor:[UIColor colorWithRed:37.0/255 green:180.0/255 blue:237.0/255 alpha:1]];
    // self.navigationController.navigationBar.hidden=YES;
-     [self.navigationController setNavigationBarHidden:YES];
+    
+    
     
 }
+
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    
+    [[[self.navigationController.navigationBar subviews] objectAtIndex:0] setAlpha:_alphaMemory];
+    
+    //    [self.navigationItem.leftBarButtonItem setBackButtonTitlePositionAdjustment:UIOffsetMake(0, -100) forBarMetrics:UIBarMetricsDefault];
+    
+    //    [[UIBarButtonItem appearance] setBackButtonTitlePositionAdjustment:UIOffsetMake(NSIntegerMin, NSIntegerMin) forBarMetrics:UIBarMetricsDefault];
+    
+    if (_alphaMemory == 0) {
+        self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+    }
+    else {
+        self.navigationController.navigationBar.tintColor = [UIColor blackColor];
+    }
+
+}
+
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -72,35 +94,38 @@ static NSString *const Identfier=@"TableCellID";
     
     NSLog(@"%.f",_mainTableView.contentOffset.y);
     
-    CGRect frame=self.topView.frame;
-   
+    CGFloat offsetY = scrollView.contentOffset.y;
     
-    if (_mainTableView.contentOffset.y>=0) {
+    CGRect frame=self.topImgV.frame;
+   
+    if (offsetY>=0) {
         
-        frame.origin.y=-(_mainTableView.contentOffset.y);
-        
-        if (_mainTableView.contentOffset.y>136) {
+        frame.origin.y=-offsetY;
+        //重新赋值 frame
+        self.topImgV.frame=frame;
+        if (offsetY<=300) {
+            self.navigationController.navigationBar.tintColor = [UIColor blackColor];
             
-            [self.navigationController setNavigationBarHidden:NO];
+            _alphaMemory = offsetY/(300) >= 1 ? 1 : offsetY/(300);
+            
+            [[[self.navigationController.navigationBar subviews] objectAtIndex:0] setAlpha:_alphaMemory];
+            
+        }else if (offsetY>300){
+            
+            _alphaMemory = 1;
+            [[[self.navigationController.navigationBar subviews] objectAtIndex:0] setAlpha:1];
+            
         }
         
+       
     }else{
         
-        
-        frame.size.height=200-(_mainTableView.contentOffset.y);
-        [self.navigationController setNavigationBarHidden:YES];
-
-        
-        
+        _topImgV.transform =  CGAffineTransformMakeScale(1 + offsetY/(-300), 1 + offsetY/(-300));
+        CGRect frame1=self.topImgV.frame;
+        frame1.origin.y = 0;
+        self.topImgV.frame=frame1;
     }
-    
-    _topView.frame=frame;
-    
-    CGRect frame1=self.topImgV.frame;
-    frame1.size.width=frame.size.width;
-    frame1.size.height=frame.size.height;
-    
-    self.topImgV.frame=frame1;
+  
     
 
 }
